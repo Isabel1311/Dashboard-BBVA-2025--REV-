@@ -2,6 +2,7 @@
 # Ejecuta en tu terminal: pip install streamlit
 # Luego corre: streamlit run app.py
 
+
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -67,7 +68,6 @@ if archivo:
         col4.metric("📊 Órdenes Promedio por Proveedor", f"{ordenes_prom:.2f}")
 
         st.subheader("📊 Recuento de Órdenes por Proveedor y Estatus")
-        if "ORDEN" in df_filtrado.columns and "ESTATUS DE USUARIO" in df_filtrado.columns:
         tabla_ordenes = pd.pivot_table(
             df_filtrado,
             index="PROVEEDOR",
@@ -77,13 +77,14 @@ if archivo:
             fill_value=0
         )
         tabla_ordenes["TOTAL_ORDENES"] = tabla_ordenes.sum(axis=1)
-        fila_total = pd.DataFrame([tabla_ordenes.sum(numeric_only=True)], index=["TOTAL GENERAL"])
+        fila_total = pd.DataFrame([tabla_ordenes.sum()], index=["TOTAL GENERAL"])
         tabla_ordenes = pd.concat([tabla_ordenes, fila_total])
         tabla_ordenes = tabla_ordenes.sort_values(by="TOTAL_ORDENES", ascending=False)
-        st.dataframe(tabla_ordenes.style.apply(lambda x: ["background-color: #dfeaf4; font-weight: bold" if x.name == "TOTAL GENERAL" else "" for _ in x], axis=1))
+        st.dataframe(tabla_ordenes.style.format("{:,.0f}").apply(
+            lambda x: ["background-color: #dfeaf4; font-weight: bold" if x.name == "TOTAL GENERAL" else "" for _ in x],
+            axis=1))
 
         st.subheader("💰 Importe Total por Proveedor y Estatus")
-        if "IMPORTE" in df_filtrado.columns and "ESTATUS DE USUARIO" in df_filtrado.columns:
         tabla_importes = pd.pivot_table(
             df_filtrado,
             index="PROVEEDOR",
@@ -93,16 +94,13 @@ if archivo:
             fill_value=0
         )
         tabla_importes["IMPORTE_TOTAL"] = tabla_importes.sum(axis=1)
-        fila_total_importe = pd.DataFrame([tabla_importes.sum(numeric_only=True)], index=["TOTAL GENERAL"])
+        fila_total_importe = pd.DataFrame([tabla_importes.sum()], index=["TOTAL GENERAL"])
         tabla_importes = pd.concat([tabla_importes, fila_total_importe])
         tabla_importes = tabla_importes.round(2)
         tabla_importes = tabla_importes.sort_values(by="IMPORTE_TOTAL", ascending=False)
-        st.dataframe(
-            tabla_importes.style.format("${:,.0f}").apply(
-                lambda x: ["background-color: #e8f4ff; font-weight: bold; border-top: 2px solid #ccc; border-bottom: 2px solid #ccc" if x.name == "TOTAL GENERAL" else "" for _ in x], axis=1
-            ).set_properties(**{"text-align": "center"}).set_table_styles([
-                {"selector": "th", "props": [("background-color", "#f1f3f4"), ("font-weight", "bold")]}])
-        )
+        st.dataframe(tabla_importes.style.format("${:,.0f}").apply(
+            lambda x: ["background-color: #dfeaf4; font-weight: bold" if x.name == "TOTAL GENERAL" else "" for _ in x],
+            axis=1))
 
         st.sidebar.markdown("---")
         if st.sidebar.button("📥 Descargar resumen en Excel"):
@@ -116,3 +114,4 @@ if archivo:
                 file_name="resumen_mantenimiento.xlsx",
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             )
+
